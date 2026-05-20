@@ -3,36 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chrome으로 이동 중...</title>
+    <title>웹사이트 이동 중...</title>
     <script>
         window.onload = function() {
             var userAgent = navigator.userAgent.toLowerCase();
             var domain = "dan.shinan.or.kr";
+            var isAndroid = userAgent.indexOf("android") > -1;
+            var isIOS = userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1 || userAgent.indexOf("ipod") > -1;
             
-            // 1. 아이폰 (iOS)
-            if (userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1 || userAgent.indexOf("ipod") > -1) {
-                // 아이폰 크롬 앱 호출 (https인 경우 googlechromes:// 사용)
-                window.location.href = "googlechromes://" + domain;
-                
-                // 만약 크롬 앱이 설치되어 있지 않다면 1.5초 뒤 사파리(기본 브라우저)에서 https로 열기
-                setTimeout(function() {
-                    window.location.href = "https://" + domain;
-                }, 1500);
+            // 1. 아이폰 (iOS) - 사파리(기본 브라우저)로 연결
+            if (isIOS) {
+                // 아이폰은 특수 명령어 없이 일반 https 주소를 쓰면 사파리로 열립니다.
+                window.location.href = "https://" + domain;
             } 
-            // 2. 안드로이드
-            else if (userAgent.indexOf("android") > -1) {
-                // 안드로이드 크롬 앱 강제 호출 intent (scheme=https로 변경)
-                window.location.href = "intent://" + domain + "#Intent;scheme=https;package=com.android.chrome;end";
+            // 2. 안드로이드 - 크롬 앱으로 강제 연결
+            else if (isAndroid) {
+                var intentUrl = "intent://" + domain + "#Intent;scheme=https;package=com.android.chrome;end";
+                var fallbackUrl = "https://" + domain;
+                
+                // 안드로이드 크롬 앱 자동 호출 시도
+                window.location.href = intentUrl;
+                
+                // 앱 브라우저(카카오톡 등)에서 자동 이동이 차단되었을 경우 1.5초 뒤 버튼 표시
+                setTimeout(function() {
+                    document.getElementById("loadingText").style.display = "none";
+                    document.getElementById("errorBox").style.display = "block";
+                    document.getElementById("chromeBtn").href = intentUrl;
+                    document.getElementById("basicBtn").href = fallbackUrl;
+                }, 1500);
             } 
             // 3. 기타 기기 (PC 등)
             else {
-                // 일반 브라우저에서는 바로 https로 이동
                 window.location.href = "https://" + domain;
             }
         };
     </script>
 </head>
 <body style="text-align: center; padding-top: 50px; font-family: sans-serif;">
-    <p>Chrome 브라우저로 이동하고 있습니다...<br>잠시만 기다려 주세요.</p>
+    
+    <!-- 기본 로딩 텍스트 -->
+    <p id="loadingText" style="font-size: 16px;">해당 기기에 맞는 브라우저로 이동 중입니다...<br>잠시만 기다려 주세요.</p>
+    
+    <!-- 안드로이드 자동 이동 실패 시 나타나는 버튼 영역 -->
+    <div id="errorBox" style="display: none; margin-top: 30px;">
+        <p style="color: #d93025; font-weight: bold; margin-bottom: 20px; font-size: 15px;">
+            현재 앱에서는 자동 이동이 제한되었습니다.<br>아래 버튼을 눌러주세요.
+        </p>
+        <a id="chromeBtn" href="#" style="display: inline-block; padding: 12px 24px; background-color: #4285f4; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-bottom: 12px; width: 200px;">크롬(Chrome)으로 열기</a>
+        <br>
+        <a id="basicBtn" href="#" style="display: inline-block; padding: 12px 24px; background-color: #f1f3f4; color: #3c4043; text-decoration: none; border-radius: 6px; width: 200px;">현재 화면에서 바로 열기</a>
+    </div>
+
 </body>
 </html>
